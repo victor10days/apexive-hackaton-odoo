@@ -1,0 +1,74 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - '5432:5432'
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --loglevel warning
+
+  odoo:
+    platform: linux/amd64
+    profiles:
+      - donotstart
+    image: ${ODOO_IMAGE}:${ODOO_VERSION}.${ODOO_IMAGE_VERSION}
+    command: ["--addons-path", "/mnt/extra-addons"]
+    build:
+      context: docker
+      platforms:
+        - "linux/amd64"
+    volumes:
+      - ./extra-addons:/mnt/extra-addons
+      - ./local-data:/var/lib/odoo
+    ports:
+      - '8069:8069'
+    depends_on:
+      - db
+
+  bundle:
+    platform: linux/amd64
+    profiles:
+      - donotstart
+    image: ${ODOO_IMAGE}:${ODOO_VERSION}.${ODOO_IMAGE_VERSION}-bundle-${ODOO_BUNDLE_VERSION}
+    build:
+      platforms:
+        - "linux/amd64"
+      args:
+        FROM_IMAGE: ${ODOO_IMAGE}:${ODOO_VERSION}.${ODOO_IMAGE_VERSION}
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: always
+    container_name: qdrant
+    ports:
+      - 6333:6333
+      - 6334:6334
+    expose:
+      - 6333
+      - 6334
+      - 6335
+    configs:
+      - source: qdrant_config
+        target: /qdrant/config/production.yaml
+    volumes:
+      - ./local-data/qdrant:/qdrant/storage
+
+configs:
+  qdrant_config:
+    content: |
+      log_level: INFO
+
+volumes:
+  postgresql_data:
+    driver: local

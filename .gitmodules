@@ -1,0 +1,24 @@
+# Apexive Hackathon Odoo - Git Submodules
+# Add your required Odoo community modules here
+
+# Example OCA modules (uncomment and modify as needed)
+# [submodule "extra-addons/.src/oca/server-tools"]
+#     path = extra-addons/.src/oca/server-tools
+#     url = https://github.com/OCA/server-tools.git
+#     branch = 16.0
+# 
+# [submodule "extra-addons/.src/oca/server-ux"]
+# 	path = extra-addons/.src/oca/server-ux
+# 	url = https://github.com/OCA/server-ux
+# 	branch = 16.0
+# 
+# [submodule "extra-addons/.src/oca/web"]
+# 	path = extra-addons/.src/oca/web
+# 	url = https://github.com/OCA/web
+# 	branch = 16.0
+# 
+
+[submodule "extra-addons/.src/apexive/odoo-llm"]
+	path = extra-addons/.src/apexive/odoo-llm
+	url = git@github.com:/apexive/odoo-llm
+	branch = 16.0
