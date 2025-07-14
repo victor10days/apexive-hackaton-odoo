@@ -43,20 +43,25 @@ modules:
 	$(GIT) submodule foreach --recursive 'git pull'
 
 symlinks:
-	cd $(ADDONS_DIR) && rm -f * ; \
-	ln -sf $$(find .src -type f -name __manifest__.py | sed 's/__manifest__.py//g') .
+	cd $(ADDONS_DIR) && find . -maxdepth 1 -type l -exec rm {} \; && \
+	for addon in $$(find .src -type f -name __manifest__.py | sed 's/__manifest__.py//g'); do \
+		ln -sf $$addon . ; \
+	done
 
 docker/requirements.txt:
-	$(ACTIVATE)	setuptools-odoo-make-default --odoo-version-override="$(ODOO_VERSION)" --addons-dir "$(ADDONS_DIR)" && \
+	$(ACTIVATE) setuptools-odoo-make-default --odoo-version-override="$(ODOO_VERSION)" --addons-dir "$(ADDONS_DIR)" && \
 	$(ACTIVATE) (setuptools-odoo-get-requirements --addons-dir "$(ADDONS_DIR)" | \
-	grep -v 'csv' | grep -v 'infobip' | grep -v "cryptography"| grep -v 'ldap' | grep -v 'en_core_web_sm' |\
+	grep -v 'csv' | grep -v 'infobip' | grep -v "cryptography"| grep -v 'ldap' | grep -v 'en_core_web_sm' | \
 	sed -e 's/pysftp/pysftp==0.2.8/' -e 's/facturx/factur-x/' \
 	-e 's/PIL/Pillow/' -e 's/cv2/opencv-python/' -e 's/speech_recognition/speechrecognition/'; \
-	echo "pyOpenSSL==22.0.0"; echo "cryptography==36.0.2"; echo "lxml_html_clean"; echo "fsspec[gcs]")\
+	echo "pyOpenSSL==22.0.0"; echo "cryptography==36.0.2"; echo "lxml_html_clean"; echo "fsspec[gcs]") \
 	> docker/requirements.txt
 
 init: venv
-	$(ACTIVATE) pip install --upgrade pip setuptools-odoo wheel -r src/odoo/requirements.txt -r docker/requirements.txt
+	$(ACTIVATE) pip install --upgrade pip setuptools-odoo wheel numpy
+	$(ACTIVATE) pip install --no-build-isolation -r src/odoo/requirements.txt
+	$(ACTIVATE) pip install --no-deps anthropic chromadb-client emoji fal_client markdown2 markdownify nltk ollama openai pgvector PyMuPDF pyyaml qdrant-client replicate pyOpenSSL==22.0.0 cryptography==36.0.2 lxml_html_clean
+	$(ACTIVATE) pip install mistralai pydantic
 
 venv:
 	python3.10 -m venv venv
@@ -64,7 +69,7 @@ venv:
 init-dev: $(ODOO_SRC) init
 
 $(ODOO_SRC):
-	if [ -d "$(ODOO_SRC)" ]; then cd $(ODOO_SRC) && git pull; else git clone --depth=1 -b $(ODOO_VERSION) git@github.com:/odoo/odoo $(ODOO_SRC); fi
+	if [ -d "$(ODOO_SRC)" ]; then cd $(ODOO_SRC) && git pull; else git clone --depth=1 -b $(ODOO_VERSION) https://github.com/odoo/odoo $(ODOO_SRC); fi
 	perl -p -i -e 's/(greenlet|gevent|psycopg2|requests)[>=<~\\!].*$$/\1/' $(ODOO_SRC)/requirements.txt
 
 
@@ -75,13 +80,13 @@ local-data/odoo.conf:
 run: local-data/odoo.conf
 	$(ACTIVATE) src/odoo/odoo-bin \
 	-c ./local-data/odoo.conf -i web \
-	--limit-time-cpu=600 --limit-time-real=600 --db_host=localhost --db_user=odoo --db_password=odoo \
+	--limit-time-cpu=600 --limit-time-real=600 --db_host=127.0.0.1 --db_user=odoo --db_password=odoo \
 	--addons-path=src/odoo/addons/,extra-addons/ -d ${ODOO_DATABASE}
 
 upgrade: local-data/odoo.conf
 	$(ACTIVATE) src/odoo/odoo-bin \
 	-c ./local-data/odoo.conf --stop-after-init --no-http \
-	--limit-time-cpu=600 --limit-time-real=600 --db_host=localhost --db_user=odoo --db_password=odoo \
+	--limit-time-cpu=600 --limit-time-real=600 --db_host=127.0.0.1 --db_user=odoo --db_password=odoo \
 	--addons-path=src/odoo/addons/,extra-addons/ -d ${ODOO_DATABASE} -u all
 
 up:
@@ -113,4 +118,3 @@ run-config:
 	@echo '  </configuration>' >> .idea/runConfigurations/Odoo.xml
 	@echo '</component>' >> .idea/runConfigurations/Odoo.xml
 	@echo "IntelliJ run configuration created at .idea/runConfigurations/Odoo.xml"
-
