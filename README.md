@@ -179,4 +179,5 @@ This module supports multiple AI providers (Anthropic Claude and OpenAI GPT) and
 1. [Apexive Blog – "The Future of Software"](https://apexive.com/post/the-future-of-software)
 2. [YouTube – *Apexive Hackathon Demo* (video ID: LCEmiRjPEtQ)](https://www.youtube.com/watch?v=LCEmiRjPEtQ)
 3. [YouTube – *AI Optimizer Walkthrough* (video ID: 6eBSHbLKuN0)](https://www.youtube.com/watch?v=6eBSHbLKuN0)
-4. [Apexive Blog – "Apexive Development Philosophy"](https://apexive.com/post/apexive-development-philosophy)
+4. [Loom – *AI Business Process Optimizer Demo*](https://www.loom.com/share/a460988ff93844e4972c40ecd857b821?sid=3019a1eb-e8bc-432b-8d08-c5dc81d713a6)
+5. [Apexive Blog – "Apexive Development Philosophy"](https://apexive.com/post/apexive-development-philosophy)
